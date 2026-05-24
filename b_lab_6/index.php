@@ -5,44 +5,61 @@ session_start();
 
 require_once __DIR__ . '/functions.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
+function mapFrontendFields($raw) {
+    $mapped = [];
+    $mapped['full_name'] = trim($raw['name'] ?? '');
 
-    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
-        header('Location: form.php');
-        exit();
+    $bouquet = trim($raw['bouquet'] ?? '');
+    $message = trim($raw['message'] ?? '');
+    $bio = '';
+    if (!empty($bouquet)) {
+        $bio .= 'Выбранный букет: ' . $bouquet;
     }
+    if (!empty($message)) {
+        if (!empty($bio)) $bio .= "\n";
+        $bio .= 'Пожелания: ' . $message;
+    }
+    $mapped['biography'] = $bio;
+    $mapped['phone'] = trim($raw['phone'] ?? '');
+    $mapped['email'] = trim($raw['email'] ?? 'user@example.com');
+    $mapped['birth_date'] = trim($raw['birth_date'] ?? date('Y-m-d'));
+    $mapped['gender'] = $raw['gender'] ?? 'male';
+    $mapped['agreement'] = '1';
+    $mapped['languages'] = ['PHP'];
 
+    return $mapped;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     $form_data = [
-        'full_name' => trim($_POST['full_name'] ?? ''),
+        'name' => trim($_POST['name'] ?? ''),
         'phone' => trim($_POST['phone'] ?? ''),
-        'email' => trim($_POST['email'] ?? ''),
-        'birth_date' => $_POST['birth_date'] ?? '',
-        'gender' => $_POST['gender'] ?? '',
-        'biography' => trim($_POST['biography'] ?? ''),
-        'agreement' => isset($_POST['agreement']) ? '1' : '',
-        'languages' => $_POST['languages'] ?? []
+        'bouquet' => trim($_POST['bouquet'] ?? ''),
+        'message' => trim($_POST['message'] ?? '')
     ];
 
-    $errors = validateFormData($form_data);
+    $mapped = mapFrontendFields($form_data);
+
+    $errors = validateFormData($mapped);
 
     if (empty($errors)) {
         if (isset($_SESSION['user_id'])) {
-            $db_success = updateApplication($_SESSION['user_id'], $form_data);
+            $db_success = updateApplication($_SESSION['user_id'], $mapped);
         } else {
-            $db_success = saveNewApplication($form_data);
+            $db_success = saveNewApplication($mapped);
         }
 
         if ($db_success) {
-            saveToCookies($form_data);
             setcookie('save', '1', time() + 24 * 60 * 60, '/');
             header('Location: form.php');
             exit();
         } else {
+            $_SESSION['errors'] = ['general' => 'Ошибка сохранения данных.'];
             header('Location: form.php');
             exit();
         }
     } else {
-        saveToCookies($form_data, $errors);
+        $_SESSION['errors'] = $errors;
         header('Location: form.php');
         exit();
     }
@@ -50,4 +67,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     header('Location: form.php');
     exit();
 }
-?>

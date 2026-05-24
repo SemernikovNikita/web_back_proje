@@ -55,7 +55,6 @@ function redirectForm($data, $errors = null, $credentials = null, $success = fal
         $_SESSION['success'] = true;
         setcookie('save', '1', time() + 24 * 60 * 60, '/');
     }
-    saveToCookies($data, $errors);
     header('Location: ../b_lab_6/form.php');
     exit;
 }

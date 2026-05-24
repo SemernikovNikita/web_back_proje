@@ -10,11 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function showMessage(type, html) {
         if (!messagesContainer) return;
         var div = document.createElement('div');
-        div.className = type === 'success' ? 'success-message' : 'error-message';
-        div.style.cssText = (type === 'success'
-            ? 'color: green; background-color: #e8f5e9; border: 1px solid green;'
-            : 'color: red; background-color: #ffebee; border: 1px solid red;')
-            + ' padding: 10px; margin-bottom: 20px; border-radius: 5px;';
+        div.className = 'msg-box ' + (type === 'success' ? 'msg-success' : 'msg-error');
         div.innerHTML = html;
         messagesContainer.appendChild(div);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -26,24 +22,13 @@ document.addEventListener('DOMContentLoaded', function () {
         messagesContainer.innerHTML = '';
 
         var data = {};
-        data.full_name = form.querySelector('[name="full_name"]')?.value || '';
-        data.phone = form.querySelector('[name="phone"]')?.value || '';
-        data.email = form.querySelector('[name="email"]')?.value || '';
-        data.birth_date = form.querySelector('[name="birth_date"]')?.value || '';
-        var genderEl = form.querySelector('[name="gender"]:checked');
-        data.gender = genderEl ? genderEl.value : '';
-        data.biography = form.querySelector('[name="biography"]')?.value || '';
-        data.agreement = form.querySelector('[name="agreement"]')?.checked ? '1' : '';
+        data.name = document.getElementById('name')?.value || '';
+        data.phone = document.getElementById('phone')?.value || '';
+        data.bouquet = document.getElementById('bouquet')?.value || '';
+        data.message = document.getElementById('message')?.value || '';
 
-        var langSelect = form.querySelector('[name="languages[]"]');
-        data.languages = [];
-        if (langSelect) {
-            for (var i = 0; i < langSelect.options.length; i++) {
-                if (langSelect.options[i].selected) {
-                    data.languages.push(langSelect.options[i].value);
-                }
-            }
-        }
+        if (!data.name) { showMessage('msg-error', 'Пожалуйста, введите ваше имя.'); return; }
+        if (!data.phone) { showMessage('msg-error', 'Пожалуйста, введите ваш телефон.'); return; }
 
         var headers = { 'Content-Type': 'application/json' };
         var userLogin = form.getAttribute('data-login');
@@ -57,10 +42,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         var submitBtn = form.querySelector('[type="submit"]');
-        var originalText = submitBtn ? submitBtn.value : 'Сохранить';
+        var originalText = submitBtn ? submitBtn.textContent : 'Отправить';
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.value = 'Отправка...';
+            submitBtn.textContent = 'Отправка...';
         }
 
         try {
@@ -106,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.value = originalText;
+                submitBtn.textContent = originalText;
             }
         }
     });

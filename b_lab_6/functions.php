@@ -62,45 +62,6 @@ function validateFormData($data) {
     return $errors;
 }
 
-function saveToCookies($data, $errors = null) {
-    $expire = time() + 365 * 24 * 60 * 60;
-
-    setcookie('fio_value', $data['full_name'], $expire, '/');
-    setcookie('phone_value', $data['phone'], $expire, '/');
-    setcookie('email_value', $data['email'], $expire, '/');
-    setcookie('birth_date_value', $data['birth_date'], $expire, '/');
-    setcookie('gender_value', $data['gender'], $expire, '/');
-    setcookie('biography_value', $data['biography'], $expire, '/');
-    setcookie('agreement_value', $data['agreement'], $expire, '/');
-
-    if (!empty($data['languages']) && is_array($data['languages'])) {
-        setcookie('languages_value', implode(',', $data['languages']), $expire, '/');
-    }
-
-    if ($errors !== null && !empty($errors)) {
-        $short_expire = time() + 24 * 60 * 60;
-        foreach ($errors as $field => $error) {
-            switch($field) {
-                case 'full_name': setcookie('fio_error', '1', $short_expire, '/'); break;
-                case 'phone': setcookie('phone_error', '1', $short_expire, '/'); break;
-                case 'email': setcookie('email_error', '1', $short_expire, '/'); break;
-                case 'birth_date': setcookie('birth_date_error', '1', $short_expire, '/'); break;
-                case 'gender': setcookie('gender_error', '1', $short_expire, '/'); break;
-                case 'biography': setcookie('biography_error', '1', $short_expire, '/'); break;
-                case 'agreement': setcookie('agreement_error', '1', $short_expire, '/'); break;
-                case 'languages': setcookie('languages_error', '1', $short_expire, '/'); break;
-            }
-        }
-    }
-}
-
-function initCsrfToken() {
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
-}
-
 function saveNewApplication($data) {
     $pdo = getDbConnection();
 
