@@ -76,10 +76,6 @@ function mapFrontendFields($raw) {
     }
     $mapped['biography'] = $bio;
 
-    $mapped['email'] = trim($raw['email'] ?? 'user@example.com');
-    $mapped['birth_date'] = trim($raw['birth_date'] ?? date('Y-m-d'));
-    $mapped['gender'] = $raw['gender'] ?? 'male';
-    $mapped['agreement'] = isset($raw['agreement']) && ($raw['agreement'] === '1' || $raw['agreement'] === 1 || $raw['agreement'] === true) ? '1' : '1';
     return $mapped;
 }
 
@@ -90,17 +86,13 @@ function apiSaveNewApplication($data) {
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     try {
-        $sql_app = "INSERT INTO application (full_name, phone, email, birth_date, gender, biography, agreement, login, password_hash)
-                    VALUES (:full_name, :phone, :email, :birth_date, :gender, :biography, :agreement, :login, :password_hash)";
+        $sql_app = "INSERT INTO application (full_name, phone, biography, login, password_hash)
+                    VALUES (:full_name, :phone, :biography, :login, :password_hash)";
         $stmt_app = $pdo->prepare($sql_app);
         $stmt_app->execute([
             ':full_name' => $data['full_name'],
             ':phone' => $data['phone'],
-            ':email' => $data['email'],
-            ':birth_date' => $data['birth_date'],
-            ':gender' => $data['gender'],
             ':biography' => $data['biography'],
-            ':agreement' => $data['agreement'],
             ':login' => $login,
             ':password_hash' => $password_hash
         ]);
@@ -116,17 +108,12 @@ function apiUpdateApplication($app_id, $data) {
     $pdo = getDbConnection();
 
     try {
-        $sql_app = "UPDATE application SET full_name = :full_name, phone = :phone, email = :email, birth_date = :birth_date,
-                    gender = :gender, biography = :biography, agreement = :agreement WHERE id = :id";
+        $sql_app = "UPDATE application SET full_name = :full_name, phone = :phone, biography = :biography WHERE id = :id";
         $stmt_app = $pdo->prepare($sql_app);
         $stmt_app->execute([
             ':full_name' => $data['full_name'],
             ':phone' => $data['phone'],
-            ':email' => $data['email'],
-            ':birth_date' => $data['birth_date'],
-            ':gender' => $data['gender'],
             ':biography' => $data['biography'],
-            ':agreement' => $data['agreement'],
             ':id' => $app_id
         ]);
 
@@ -159,9 +146,6 @@ if (strpos($content_type, 'application/json') !== false) {
         sendError('Invalid XML input', 400, 'xml');
     }
     $raw = json_decode(json_encode($xml), true);
-    if (isset($raw['agreement'])) {
-        $raw['agreement'] = $raw['agreement'] === '1' || $raw['agreement'] === 1 || $raw['agreement'] === true || $raw['agreement'] === 'true' ? '1' : '';
-    }
 } else {
     $format = 'form';
     $raw = $_POST;
@@ -175,11 +159,7 @@ if (empty($raw) || !is_array($raw)) {
         $data = [
             'full_name' => trim($raw['full_name'] ?? ''),
             'phone' => trim($raw['phone'] ?? ''),
-            'email' => trim($raw['email'] ?? ''),
-            'birth_date' => $raw['birth_date'] ?? '',
-            'gender' => $raw['gender'] ?? '',
-            'biography' => trim($raw['biography'] ?? ''),
-            'agreement' => isset($raw['agreement']) ? '1' : ''
+            'biography' => trim($raw['biography'] ?? '')
         ];
 } else {
     $data = mapFrontendFields($raw);

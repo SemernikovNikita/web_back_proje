@@ -68,13 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_id'])) {
         $id = (int)$_POST['edit_id'];
         $full_name = trim($_POST['full_name']);
         $phone = trim($_POST['phone']);
-        $email = trim($_POST['email']);
-        $birth_date = $_POST['birth_date'];
-        $gender = $_POST['gender'];
         $biography = trim($_POST['biography']);
-        $agreement = isset($_POST['agreement']) ? '1' : '0';
-        $stmt = $pdo->prepare("UPDATE application SET full_name=?, phone=?, email=?, birth_date=?, gender=?, biography=?, agreement=? WHERE id=?");
-        $stmt->execute([$full_name, $phone, $email, $birth_date, $gender, $biography, $agreement, $id]);
+        $stmt = $pdo->prepare("UPDATE application SET full_name=?, phone=?, biography=? WHERE id=?");
+        $stmt->execute([$full_name, $phone, $biography, $id]);
         
         $message = '<div class="success">Запись успешно обновлена</div>';
     }
@@ -143,9 +139,7 @@ $csrf_token = $_SESSION['csrf_token'];
                     <th>ID</th>
                     <th>ФИО</th>
                     <th>Телефон</th>
-                    <th>Email</th>
-                    <th>Дата рождения</th>
-                    <th>Пол</th>
+                    <th>Пожелания</th>
                     <th>Действия</th>
                 </tr>
                 <?php foreach ($applications as $app): ?>
@@ -153,9 +147,7 @@ $csrf_token = $_SESSION['csrf_token'];
                         <td><?php echo $app['id']; ?></td>
                         <td><?php echo htmlspecialchars($app['full_name']); ?></td>
                         <td><?php echo htmlspecialchars($app['phone']); ?></td>
-                        <td><?php echo htmlspecialchars($app['email']); ?></td>
-                        <td><?php echo htmlspecialchars($app['birth_date']); ?></td>
-                        <td><?php echo $app['gender'] == 'male' ? 'Мужской' : 'Женский'; ?></td>
+                        <td><?php echo htmlspecialchars($app['biography']); ?></td>
                         <td>
                             <a href="admin.php?edit=<?php echo $app['id']; ?>" class="btn btn-edit">Редактировать</a>
                             <a href="admin.php?delete=<?php echo $app['id']; ?>" class="btn btn-delete" onclick="return confirm('Удалить запись?')">Удалить</a>
@@ -187,33 +179,8 @@ $csrf_token = $_SESSION['csrf_token'];
                 </div>
                 
                 <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($edit_app['email']); ?>" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="birth_date">Дата рождения:</label>
-                    <input type="date" id="birth_date" name="birth_date" value="<?php echo htmlspecialchars($edit_app['birth_date']); ?>" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Пол:</label>
-                    <select name="gender" required>
-                        <option value="male" <?php echo $edit_app['gender'] == 'male' ? 'selected' : ''; ?>>Мужской</option>
-                        <option value="female" <?php echo $edit_app['gender'] == 'female' ? 'selected' : ''; ?>>Женский</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="biography">Биография:</label>
+                    <label for="biography">Пожелания:</label>
                     <textarea id="biography" name="biography"><?php echo htmlspecialchars($edit_app['biography']); ?></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="agreement" value="1" <?php echo $edit_app['agreement'] ? 'checked' : ''; ?>>
-                        С контрактом ознакомлен
-                    </label>
                 </div>
                 
                 <button type="submit" class="btn btn-edit">Сохранить</button>

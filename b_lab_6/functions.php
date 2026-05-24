@@ -25,34 +25,8 @@ function validateFormData($data) {
         $errors['phone'] = 'Введите корректный номер телефона. Допустимые символы: цифры, +, -, пробелы, скобки (10-20 символов).';
     }
 
-    if (empty($data['email'])) {
-        $errors['email'] = 'Email обязателен для заполнения.';
-    } elseif (!preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $data['email'])) {
-        $errors['email'] = 'Введите корректный email адрес (например: user@domain.com).';
-    }
-
-    if (empty($data['birth_date'])) {
-        $errors['birth_date'] = 'Дата рождения обязательна для заполнения.';
-    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birth_date'])) {
-        $errors['birth_date'] = 'Неверный формат даты. Используйте формат ГГГГ-ММ-ДД.';
-    } elseif ($data['birth_date'] > date('Y-m-d')) {
-        $errors['birth_date'] = 'Дата рождения не может быть в будущем.';
-    } elseif (strtotime($data['birth_date']) < strtotime('-150 years')) {
-        $errors['birth_date'] = 'Пожалуйста, укажите корректную дату рождения (не более 150 лет).';
-    }
-
-    if (empty($data['gender'])) {
-        $errors['gender'] = 'Пожалуйста, выберите ваш пол.';
-    } elseif (!in_array($data['gender'], ['male', 'female'])) {
-        $errors['gender'] = 'Выбрано некорректное значение пола.';
-    }
-
     if (!empty($data['biography']) && mb_strlen($data['biography']) > 1000) {
-        $errors['biography'] = 'Биография не должна превышать 1000 символов.';
-    }
-
-    if (empty($data['agreement'])) {
-        $errors['agreement'] = 'Необходимо подтвердить согласие с контрактом.';
+        $errors['biography'] = 'Пожелания не должны превышать 1000 символов.';
     }
 
     return $errors;
@@ -66,17 +40,13 @@ function saveNewApplication($data) {
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     try {
-        $sql_app = "INSERT INTO application (full_name, phone, email, birth_date, gender, biography, agreement, login, password_hash)
-                    VALUES (:full_name, :phone, :email, :birth_date, :gender, :biography, :agreement, :login, :password_hash)";
+        $sql_app = "INSERT INTO application (full_name, phone, biography, login, password_hash)
+                    VALUES (:full_name, :phone, :biography, :login, :password_hash)";
         $stmt_app = $pdo->prepare($sql_app);
         $stmt_app->execute([
             ':full_name' => $data['full_name'],
             ':phone' => $data['phone'],
-            ':email' => $data['email'],
-            ':birth_date' => $data['birth_date'],
-            ':gender' => $data['gender'],
             ':biography' => $data['biography'],
-            ':agreement' => $data['agreement'],
             ':login' => $login,
             ':password_hash' => $password_hash
         ]);
@@ -102,17 +72,12 @@ function updateApplication($app_id, $data) {
     $pdo = getDbConnection();
 
     try {
-        $sql_app = "UPDATE application SET full_name = :full_name, phone = :phone, email = :email, birth_date = :birth_date,
-                    gender = :gender, biography = :biography, agreement = :agreement WHERE id = :id";
+        $sql_app = "UPDATE application SET full_name = :full_name, phone = :phone, biography = :biography WHERE id = :id";
         $stmt_app = $pdo->prepare($sql_app);
         $stmt_app->execute([
             ':full_name' => $data['full_name'],
             ':phone' => $data['phone'],
-            ':email' => $data['email'],
-            ':birth_date' => $data['birth_date'],
-            ':gender' => $data['gender'],
             ':biography' => $data['biography'],
-            ':agreement' => $data['agreement'],
             ':id' => $app_id
         ]);
 

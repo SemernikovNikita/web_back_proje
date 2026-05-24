@@ -21,10 +21,6 @@ function mapFrontendFields($raw) {
     }
     $mapped['biography'] = $bio;
     $mapped['phone'] = trim($raw['phone'] ?? '');
-    $mapped['email'] = trim($raw['email'] ?? 'user@example.com');
-    $mapped['birth_date'] = trim($raw['birth_date'] ?? date('Y-m-d'));
-    $mapped['gender'] = $raw['gender'] ?? 'male';
-    $mapped['agreement'] = '1';
 
     return $mapped;
 }
