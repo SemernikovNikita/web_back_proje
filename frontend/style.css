@@ -209,8 +209,8 @@ nav ul li a:hover {
 }
 
 .hero {
-    height: 1vh;
-    min-height: 700px;
+    height: auto;
+    min-height: 100vh;
     position: relative;
     display: flex;
     align-items: center;
