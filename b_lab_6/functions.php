@@ -55,10 +55,6 @@ function validateFormData($data) {
         $errors['agreement'] = 'Необходимо подтвердить согласие с контрактом.';
     }
 
-    if (empty($data['languages']) || !is_array($data['languages'])) {
-        $errors['languages'] = 'Выберите хотя бы один язык программирования.';
-    }
-
     return $errors;
 }
 
@@ -69,15 +65,7 @@ function saveNewApplication($data) {
     $password = bin2hex(random_bytes(8));
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-    $languages_db = [];
-    $stmt = $pdo->query("SELECT id, name FROM programming_language ORDER BY id");
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $languages_db[$row['name']] = $row['id'];
-    }
-
     try {
-        $pdo->beginTransaction();
-
         $sql_app = "INSERT INTO application (full_name, phone, email, birth_date, gender, biography, agreement, login, password_hash)
                     VALUES (:full_name, :phone, :email, :birth_date, :gender, :biography, :agreement, :login, :password_hash)";
         $stmt_app = $pdo->prepare($sql_app);
@@ -92,17 +80,6 @@ function saveNewApplication($data) {
             ':login' => $login,
             ':password_hash' => $password_hash
         ]);
-
-        $application_id = $pdo->lastInsertId();
-
-        $sql_link = "INSERT INTO application_language (application_id, language_id) VALUES (?, ?)";
-        $stmt_link = $pdo->prepare($sql_link);
-
-        foreach ($data['languages'] as $lang_name) {
-            if (isset($languages_db[$lang_name])) {
-                $stmt_link->execute([$application_id, $languages_db[$lang_name]]);
-            }
-        }
 
         $pdo->commit();
 
@@ -124,15 +101,7 @@ function saveNewApplication($data) {
 function updateApplication($app_id, $data) {
     $pdo = getDbConnection();
 
-    $languages_db = [];
-    $stmt = $pdo->query("SELECT id, name FROM programming_language ORDER BY id");
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $languages_db[$row['name']] = $row['id'];
-    }
-
     try {
-        $pdo->beginTransaction();
-
         $sql_app = "UPDATE application SET full_name = :full_name, phone = :phone, email = :email, birth_date = :birth_date,
                     gender = :gender, biography = :biography, agreement = :agreement WHERE id = :id";
         $stmt_app = $pdo->prepare($sql_app);
@@ -146,18 +115,6 @@ function updateApplication($app_id, $data) {
             ':agreement' => $data['agreement'],
             ':id' => $app_id
         ]);
-
-        $stmt = $pdo->prepare("DELETE FROM application_language WHERE application_id = ?");
-        $stmt->execute([$app_id]);
-
-        $sql_link = "INSERT INTO application_language (application_id, language_id) VALUES (?, ?)";
-        $stmt_link = $pdo->prepare($sql_link);
-
-        foreach ($data['languages'] as $lang_name) {
-            if (isset($languages_db[$lang_name])) {
-                $stmt_link->execute([$app_id, $languages_db[$lang_name]]);
-            }
-        }
 
         $pdo->commit();
 

@@ -1,0 +1,15 @@
+CREATE DATABASE IF NOT EXISTS u82190 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE u82190;
+
+CREATE TABLE IF NOT EXISTS application (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(100) NOT NULL DEFAULT 'user@example.com',
+    birth_date DATE NOT NULL DEFAULT '2000-01-01',
+    gender VARCHAR(10) NOT NULL DEFAULT 'male',
+    biography TEXT,
+    agreement VARCHAR(1) NOT NULL DEFAULT '1',
+    login VARCHAR(32) UNIQUE,
+    password_hash VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

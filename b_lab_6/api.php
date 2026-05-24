@@ -80,8 +80,6 @@ function mapFrontendFields($raw) {
     $mapped['birth_date'] = trim($raw['birth_date'] ?? date('Y-m-d'));
     $mapped['gender'] = $raw['gender'] ?? 'male';
     $mapped['agreement'] = isset($raw['agreement']) && ($raw['agreement'] === '1' || $raw['agreement'] === 1 || $raw['agreement'] === true) ? '1' : '1';
-    $mapped['languages'] = $raw['languages'] ?? ['PHP'];
-
     return $mapped;
 }
 
@@ -91,14 +89,7 @@ function apiSaveNewApplication($data) {
     $password = bin2hex(random_bytes(8));
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-    $languages_db = [];
-    $stmt = $pdo->query("SELECT id, name FROM programming_language ORDER BY id");
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $languages_db[$row['name']] = $row['id'];
-    }
-
     try {
-        $pdo->beginTransaction();
         $sql_app = "INSERT INTO application (full_name, phone, email, birth_date, gender, biography, agreement, login, password_hash)
                     VALUES (:full_name, :phone, :email, :birth_date, :gender, :biography, :agreement, :login, :password_hash)";
         $stmt_app = $pdo->prepare($sql_app);
@@ -114,15 +105,6 @@ function apiSaveNewApplication($data) {
             ':password_hash' => $password_hash
         ]);
 
-        $application_id = $pdo->lastInsertId();
-        $sql_link = "INSERT INTO application_language (application_id, language_id) VALUES (?, ?)";
-        $stmt_link = $pdo->prepare($sql_link);
-        foreach ($data['languages'] as $lang_name) {
-            if (isset($languages_db[$lang_name])) {
-                $stmt_link->execute([$application_id, $languages_db[$lang_name]]);
-            }
-        }
-        $pdo->commit();
         return ['login' => $login, 'password' => $password];
     } catch (PDOException $e) {
         if (isset($pdo)) $pdo->rollBack();
@@ -132,14 +114,8 @@ function apiSaveNewApplication($data) {
 
 function apiUpdateApplication($app_id, $data) {
     $pdo = getDbConnection();
-    $languages_db = [];
-    $stmt = $pdo->query("SELECT id, name FROM programming_language ORDER BY id");
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $languages_db[$row['name']] = $row['id'];
-    }
 
     try {
-        $pdo->beginTransaction();
         $sql_app = "UPDATE application SET full_name = :full_name, phone = :phone, email = :email, birth_date = :birth_date,
                     gender = :gender, biography = :biography, agreement = :agreement WHERE id = :id";
         $stmt_app = $pdo->prepare($sql_app);
@@ -154,17 +130,6 @@ function apiUpdateApplication($app_id, $data) {
             ':id' => $app_id
         ]);
 
-        $stmt = $pdo->prepare("DELETE FROM application_language WHERE application_id = ?");
-        $stmt->execute([$app_id]);
-
-        $sql_link = "INSERT INTO application_language (application_id, language_id) VALUES (?, ?)";
-        $stmt_link = $pdo->prepare($sql_link);
-        foreach ($data['languages'] as $lang_name) {
-            if (isset($languages_db[$lang_name])) {
-                $stmt_link->execute([$app_id, $languages_db[$lang_name]]);
-            }
-        }
-        $pdo->commit();
         return true;
     } catch (PDOException $e) {
         if (isset($pdo)) $pdo->rollBack();
@@ -194,11 +159,6 @@ if (strpos($content_type, 'application/json') !== false) {
         sendError('Invalid XML input', 400, 'xml');
     }
     $raw = json_decode(json_encode($xml), true);
-    if (isset($raw['languages']['item']) && !is_array($raw['languages']['item'])) {
-        $raw['languages'] = [$raw['languages']['item']];
-    } elseif (isset($raw['languages']['item']) && is_array($raw['languages']['item'])) {
-        $raw['languages'] = $raw['languages']['item'];
-    }
     if (isset($raw['agreement'])) {
         $raw['agreement'] = $raw['agreement'] === '1' || $raw['agreement'] === 1 || $raw['agreement'] === true || $raw['agreement'] === 'true' ? '1' : '';
     }
@@ -211,17 +171,16 @@ if (empty($raw) || !is_array($raw)) {
     sendError('No data received', 400, $format);
 }
 
-if (isset($raw['full_name']) || isset($raw['email'])) {
-    $data = [
-        'full_name' => trim($raw['full_name'] ?? ''),
-        'phone' => trim($raw['phone'] ?? ''),
-        'email' => trim($raw['email'] ?? ''),
-        'birth_date' => $raw['birth_date'] ?? '',
-        'gender' => $raw['gender'] ?? '',
-        'biography' => trim($raw['biography'] ?? ''),
-        'agreement' => isset($raw['agreement']) ? '1' : '',
-        'languages' => $raw['languages'] ?? []
-    ];
+    if (isset($raw['full_name']) || isset($raw['email'])) {
+        $data = [
+            'full_name' => trim($raw['full_name'] ?? ''),
+            'phone' => trim($raw['phone'] ?? ''),
+            'email' => trim($raw['email'] ?? ''),
+            'birth_date' => $raw['birth_date'] ?? '',
+            'gender' => $raw['gender'] ?? '',
+            'biography' => trim($raw['biography'] ?? ''),
+            'agreement' => isset($raw['agreement']) ? '1' : ''
+        ];
 } else {
     $data = mapFrontendFields($raw);
 }

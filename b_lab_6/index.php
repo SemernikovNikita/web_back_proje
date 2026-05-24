@@ -25,7 +25,6 @@ function mapFrontendFields($raw) {
     $mapped['birth_date'] = trim($raw['birth_date'] ?? date('Y-m-d'));
     $mapped['gender'] = $raw['gender'] ?? 'male';
     $mapped['agreement'] = '1';
-    $mapped['languages'] = ['PHP'];
 
     return $mapped;
 }
