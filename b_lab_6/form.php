@@ -39,222 +39,300 @@ if (isset($_GET['logout'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заказ букета</title>
+    <title>LunaFlora — Ночные букеты</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../frontend/style.css">
-    <style>
-        body {
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-family: "Cascadia code", monospace;
-        }
-        .page-header {
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-dark);
-        }
-        .page-header .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        .form-page {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-        .form-box {
-            background: var(--bg-dark);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 35px 30px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: var(--shadow);
-        }
-        .form-box h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 1.8rem;
-        }
-        .form-box .form-group {
-            margin-bottom: 20px;
-        }
-        .form-box .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .form-box .form-control {
-            width: 100%;
-            padding: 14px;
-            background: var(--bg-dark);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            color: var(--text-primary);
-            box-sizing: border-box;
-        }
-        .form-box .form-control:focus {
-            border-color: var(--bg-light);
-            outline: none;
-        }
-        .form-box .btn {
-            width: 100%;
-            background: var(--bg-light);
-            color: #13071d;
-            padding: 14px 30px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background 0.3s ease;
-        }
-        .form-box .btn:hover {
-            background: var(--primary-color);
-            color: var(--bg-light);
-        }
-        .form-box .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .form-box select.form-control {
-            min-height: 120px;
-        }
-        .form-box small {
-            color: var(--text-secondary);
-            display: block;
-            margin-top: 5px;
-        }
-        .form-box textarea.form-control {
-            min-height: 100px;
-            resize: vertical;
-        }
-        .auth-links {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .auth-links a {
-            color: var(--bg-light);
-            text-decoration: none;
-            border: 1px solid var(--bg-light);
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 14px;
-            display: inline-block;
-            transition: background 0.3s ease;
-        }
-        .auth-links a:hover {
-            background: var(--bg-light);
-            color: #13071d;
-        }
-        .auth-info {
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--text-secondary);
-        }
-        .auth-info a {
-            color: var(--bg-light);
-            margin-left: 10px;
-        }
-        .msg-box {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .msg-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .msg-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .msg-box a {
-            color: #155724;
-        }
-    </style>
 </head>
 <body>
-    <div class="page-header">
-        <div class="container" style="max-width:1200px; margin:0 auto; padding:0 20px;">
-            <a href="form.php" class="logo">LunaFlora</a>
-        </div>
-    </div>
+    <header id="header">
+        <div class="container header-container">
+            <a href="form.php" class="logo">
+                <i class="fas fa-moon"></i>.LunaFlora<span></span>
+            </a>
 
-    <div class="form-page">
-        <div class="form-box">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="#home">Главная</a></li>
+                    <li><a href="#catalog">Коллекция</a></li>
+                    <li><a href="#contact">Заказ</a></li>
+                    <li><a href="#contacts">Контакты</a></li>
+                    <?php if (empty($_SESSION['user_id'])): ?>
+                        <li><a href="login.php">Войти</a></li>
+                    <?php else: ?>
+                        <li><a href="form.php?logout=1">Выйти (<?php echo htmlspecialchars($_SESSION['user_name']); ?>)</a></li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero" id="home">
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="../frontend/pv.mp4" type="video/mp4">
+            Ваш браузер не поддерживает видео.
+        </video>
+        <div class="hero-overlay"></div>
+
+        <div class="container">
+            <div class="hero-content fade-in">
+                <h1>Цветы, которые сияют в темноте</h1>
+                <p>Эксклюзивные букеты, созданные для особых моментов. Доставка, индивидуальный подход и цветы, которые запомнятся навсегда.</p>
+                <div class="hero-btns">
+                    <a href="#catalog" class="btn">Исследовать коллекцию</a>
+                    <a href="#contact" class="btn btn-outline">Заказать консультацию</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slider-section" id="catalog">
+        <div class="container">
+            <div class="section-title">
+                <h2>Ночная коллекция</h2>
+                <p>Цветы, которые раскрывают свою красоту при лунном свете. Эксклюзивные композиции для романтических вечеров.</p>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider" id="slider">
+                    <div class="slide">
+                        <img src="../frontend/p1.jpg" alt="Ночные розы">
+                        <div class="slide-overlay">
+                            <div class="slide-caption">
+                                <h3>Лунные розы</h3>
+                                <a href="#contact" class="btn">Заказать</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide">
+                        <img src="../frontend/p2.jpg" alt="Ночной букет">
+                        <div class="slide-overlay">
+                            <div class="slide-caption">
+                                <h3>Полуночный сад</h3>
+                                <a href="#contact" class="btn">Заказать</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide">
+                        <img src="../frontend/p3.jpg" alt="Экзотический ночной букет">
+                        <div class="slide-overlay">
+                            <div class="slide-caption">
+                                <h3>Сияние ночи</h3>
+                                <a href="#contact" class="btn">Заказать</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="slider-nav">
+                    <button class="slider-btn" id="prevBtn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <button class="slider-btn" id="nextBtn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M10 6l6 6-6 6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="slider-dots" id="sliderDots"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="advantages-section" id="advantages">
+        <div class="container">
+            <div class="section-title">
+                <h2>Почему выбирают нас</h2>
+                <p>Мы создаем не просто букеты, а атмосферу волшебства и романтики</p>
+            </div>
+
+            <div class="advantages-grid">
+                <div class="advantage-card">
+                    <h3>Ночная доставка</h3>
+                    <p>Доставляем букеты до 20:00, чтобы вы могли удивить близких даже поздним вечером.</p>
+                </div>
+
+                <div class="advantage-card">
+                    <h3>Эксклюзивные сорта</h3>
+                    <p>Работаем с редкими ночными цветами, которые раскрывают свою красоту при лунном свете.</p>
+                </div>
+
+                <div class="advantage-card">
+                    <h3>Премиум качество</h3>
+                    <p>Каждый цветок проходит строгий отбор и хранится в специальных условиях.</p>
+                </div>
+
+                <div class="advantage-card">
+                    <h3>24/7 поддержка</h3>
+                    <p>Наши консультанты готовы помочь в любое время суток для оперативного оформления заказа.</p>
+                </div>
+
+                <div class="advantage-card">
+                    <h3>Индивидуальный дизайн</h3>
+                    <p>Создаем букеты по вашим эскизам и пожеланиям для особенных моментов.</p>
+                </div>
+
+                <div class="advantage-card">
+                    <h3>Гарантия свежести</h3>
+                    <p>Гарантируем свежесть цветов не менее 7 дней или бесплатная замена.</p>
+                </div>
+            </div>
+
+            <div class="advantages-stats">
+                <div class="stat-item">
+                    <div class="stat-number" data-count="1000">1000+</div>
+                    <div class="stat-label">довольных клиентов</div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="stat-number" data-count="150">700+</div>
+                    <div class="stat-label">эксклюзивных букетов</div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="stat-number" data-count="24">500+</div>
+                    <div class="stat-label">часов работы</div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="stat-number" data-count="7">3+</div>
+                    <div class="stat-label">дней свежести</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="section-title">
+                <h2>Заказать букет</h2>
+                <p>Мы работаем с 8:00 до 20:00</p>
+            </div>
+
             <div id="api-messages">
                 <?php foreach ($messages as $msg) echo $msg; ?>
             </div>
 
-            <?php if (empty($_SESSION['user_id'])): ?>
-                <div class="auth-links">
-                    <a href="login.php">Войти для редактирования</a>
-                </div>
-            <?php endif; ?>
-
             <?php if (!empty($_SESSION['user_id'])): ?>
-                <div class="auth-info">
+                <div style="text-align:center; margin-bottom:20px; color:var(--text-secondary);">
                     Вы вошли как: <b><?php echo htmlspecialchars($_SESSION['user_name']); ?></b>
-                    <a href="form.php?logout=1">Выйти</a>
+                    <a href="form.php?logout=1" style="color:var(--bg-light); margin-left:10px;">Выйти</a>
                 </div>
             <?php endif; ?>
 
-            <h2>Заказ букета</h2>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3>Доставка</h3>
+                    <p>Наши курьеры доставят букет точно в указанное время, не нарушая атмосферу вечера.</p>
 
-            <form action="index.php" method="POST" data-api-url="api.php" data-login="<?php echo isset($_SESSION['user_login']) ? htmlspecialchars($_SESSION['user_login'], ENT_QUOTES, 'UTF-8') : ''; ?>">
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <div>
+                                <h4>Время работы</h4>
+                                <p>8:00 - 20:00</p>
+                            </div>
+                        </div>
 
-                <?php if (!empty($_SESSION['user_id'])): ?>
-                    <div class="form-group">
-                        <label for="api_password">Пароль (для подтверждения):</label>
-                        <input type="password" id="api_password" name="api_password" class="form-control" placeholder="Введите ваш пароль">
+                        <div class="contact-item">
+                            <div>
+                                <h4>Телефон</h4>
+                                <p>+7 (000) 000-00-00</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div>
+                                <p>ул. Какая-то, 1, Краснодар</p>
+                            </div>
+                        </div>
                     </div>
-                <?php endif; ?>
 
-                <div class="form-group">
-                    <label for="name">Ваше имя *</label>
-                    <input type="text" id="name" name="name" class="form-control" placeholder="Как к вам обращаться?" required>
+                    <?php if (empty($_SESSION['user_id'])): ?>
+                        <div style="margin-top:20px;">
+                            <a href="login.php" class="btn" style="width:100%; text-align:center;">Войти для редактирования</a>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
-                <div class="form-group">
-                    <label for="phone">Телефон *</label>
-                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="+7 (___) ___-__-__" required>
-                </div>
+                <div class="contact-form">
+                    <form id="orderForm" action="index.php" method="POST" data-api-url="api.php" data-login="<?php echo isset($_SESSION['user_login']) ? htmlspecialchars($_SESSION['user_login'], ENT_QUOTES, 'UTF-8') : ''; ?>">
 
-                <div class="form-group">
-                    <label for="bouquet">Выберите букет</label>
-                    <select id="bouquet" name="bouquet" class="form-control">
-                        <option value="black-moon">Полуночный сад (4 290 ₽)</option>
-                        <option value="blue-evening">Сияние ночи (5 490 ₽)</option>
-                        <option value="moonlight">Лунные розы (6 850 ₽)</option>
-                        <option value="custom">Индивидуальный ночной букет</option>
-                    </select>
-                </div>
+                        <?php if (!empty($_SESSION['user_id'])): ?>
+                            <div class="form-group">
+                                <label for="api_password">Пароль (для подтверждения):</label>
+                                <input type="password" id="api_password" name="api_password" class="form-control" placeholder="Введите ваш пароль">
+                            </div>
+                        <?php endif; ?>
 
-                <div class="form-group">
-                    <label for="message">Особые пожелания</label>
-                    <textarea id="message" name="message" class="form-control" placeholder="Опишите атмосферу, которую хотите создать..."></textarea>
-                </div>
+                        <div class="form-group">
+                            <label for="name">Ваше имя *</label>
+                            <input type="text" id="name" name="name" class="form-control" placeholder="Как к вам обращаться?" required>
+                        </div>
 
-                <button type="submit" name="submit" class="btn">Заказать ночную доставку</button>
-            </form>
+                        <div class="form-group">
+                            <label for="phone">Телефон *</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" placeholder="+7 (___) ___-__-__" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bouquet">Выберите букет</label>
+                            <select id="bouquet" name="bouquet" class="form-control">
+                                <option value="black-moon">Полуночный сад (4 290 ₽)</option>
+                                <option value="blue-evening">Сияние ночи (5 490 ₽)</option>
+                                <option value="moonlight">Лунные розы (6 850 ₽)</option>
+                                <option value="custom">Индивидуальный ночной букет</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Особые пожелания</label>
+                            <textarea id="message" name="message" class="form-control" placeholder="Опишите атмосферу, которую хотите создать..."></textarea>
+                        </div>
+
+                        <button type="submit" name="submit" class="btn" style="width:100%;">Заказать ночную доставку</button>
+                    </form>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <script src="form.js"></script>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <a href="form.php" class="footer-logo"><i class="fas fa-moon"></i> LunaFlora</a>
+                </div>
+
+                <div class="footer-column">
+                    <h3>Навигация</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Главная</a></li>
+                        <li><a href="#catalog">Коллекция</a></li>
+                        <li><a href="#contact">Заказ</a></li>
+                        <li><a href="#contact">Консультация</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h3 id="contacts">Контакты</h3>
+                    <ul class="footer-links">
+                        <li>+7 (000) 000-00-00</li>
+                        <li>surname@gmail.com</li>
+                        <li>ул. Неизвестная 1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../frontend/script.js"></script>
 </body>
 </html>

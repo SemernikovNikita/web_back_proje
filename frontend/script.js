@@ -139,10 +139,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data.name) { showMessage('error', 'Пожалуйста, введите ваше имя.'); return; }
             if (!data.phone) { showMessage('error', 'Пожалуйста, введите ваш телефон.'); return; }
             
-            var headers = { 'Content-Type': 'application/json' };
-            
             var submitBtn = feedbackForm.querySelector('button[type="submit"]');
             var originalText = submitBtn ? submitBtn.textContent : 'Отправить';
+            
+            var headers = { 'Content-Type': 'application/json' };
+            var userLogin = feedbackForm.getAttribute('data-login');
+            if (userLogin) {
+                var userPassword = document.getElementById('api_password')?.value;
+                if (!userPassword) {
+                    alert('Введите пароль для подтверждения изменений.');
+                    return;
+                }
+                headers['Authorization'] = 'Basic ' + btoa(userLogin + ':' + userPassword);
+            }
+            
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Отправка...'; }
             
             try {
