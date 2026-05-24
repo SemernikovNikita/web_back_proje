@@ -1,0 +1,108 @@
+* {
+    margin: 0;
+    font-family: "Century Gothic", cursive;
+}
+
+body {
+    width: 100vw;
+    height: 100%;
+}
+
+header {
+    background-color: #6495ed;
+    width: 100%;
+    height: 140px;
+    margin-bottom: 25px;
+    top: 0;
+}
+
+#center {
+    max-width: 960px;
+    width: 80%;
+    margin: auto;
+    background-color: #6495ed;
+    margin-bottom: 25px;
+    margin-top: 25px;
+}
+
+#forma {
+    max-width: 960px;
+    width: 100%;
+    margin: auto;
+    background-color: #6495ed;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.name {
+    margin-top: 16px;
+    float: left;
+    color: #bdc4d4;
+}
+#logo {
+    width: 100px;
+    height: 100px;
+    margin: 20px;
+    float: left;
+}
+
+nav {
+    float: right;
+    display: flex;
+    margin: 20px;
+    max-width: 960px;
+    width: 100%;
+}
+
+.nav-link {
+    padding-left: 30px;
+    font-size: 25px;
+    color: #011427;
+    font-family:
+        Courier New,
+        monospace;
+}
+
+#tablic {
+    margin: 10;
+    max-width: 960px;
+    width: 100%;
+    margin: auto;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    border: 1px solid grey;
+    color: #000124;
+    text-align: center;
+}
+
+th {
+    border: 1px solid grey;
+}
+
+td {
+    border: 1px solid grey;
+}
+
+.chet {
+    background: #6495ed;
+}
+
+.link {
+    padding-left: 30px;
+    font-size: 25px;
+    color: #bdc4d4;
+    font-family: "Century Gothic", cursive;
+}
+
+footer {
+    background-color: #6495ed;
+    width: 100%;
+    height: 60px;
+}
+
+.name2 {
+    margin-left: 30px;
+    margin-top: 15px;
+    float: left;
+    color: #bdc4d4;
+}

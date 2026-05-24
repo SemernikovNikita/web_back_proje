@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Веб-сайт</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <i class="fas fa-moon"></i>.LunaFlora<span></span>
+            </a>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="#home">Главная</a></li>
+                    <li><a href="#catalog">Коллекция</a></li>
+                    <li><a href="#contact">Заказ</a></li>
+                    <li><a href="#contacts">Контакты</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero" id="home">
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="pv.mp4" type="video/mp4">
+            Ваш браузер не поддерживает видео.
+        </video>
+        <div class="hero-overlay"></div>
+        
+        <div class="container">
+            <div class="hero-content fade-in">
+                <h1>Цветы, которые сияют в темноте</h1>
+                <p>Эксклюзивные букеты, созданные для особых моментов. Доставка, индивидуальный подход и цветы, которые запомнятся навсегда.</p>
+                <div class="hero-btns">
+                    <a href="#catalog" class="btn">Исследовать коллекцию</a>
+                    <a href="#contact" class="btn btn-outline">Заказать консультацию</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slider-section" id="catalog">
+        <div class="container">
+            <div class="section-title">
+                <h2>Ночная коллекция</h2>
+                <p>Цветы, которые раскрывают свою красоту при лунном свете. Эксклюзивные композиции для романтических вечеров.</p>
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider" id="slider">
+                    <div class="slide">
+                        <img src="p1.jpg" alt="Ночные розы">
+                        <div class="slide-overlay">
+                            <div class="slide-caption">
+                                <h3>Лунные розы</h3>
+                                <a href="#contact" class="btn">Заказать</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide">
+                        <img src="p2.jpg" alt="Ночной букет">
+                        <div class="slide-overlay">
+                            <div class="slide-caption">
+                                <h3>Полуночный сад</h3>
+                                <a href="#contact" class="btn">Заказать</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide">
+                        <img src="p3.jpg" alt="Экзотический ночной букет">
+                        <div class="slide-overlay">
+                            <div class="slide-caption">
+                                <h3>Сияние ночи</h3>
+                                <a href="#contact" class="btn">Заказать</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slider-nav">
+                    <button class="slider-btn" id="prevBtn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <button class="slider-btn" id="nextBtn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M10 6l6 6-6 6"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="slider-dots" id="sliderDots"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="advantages-section" id="advantages">
+        <div class="container">
+            <div class="section-title">
+                <h2>Почему выбирают нас</h2>
+                <p>Мы создаем не просто букеты, а атмосферу волшебства и романтики</p>
+            </div>
+            
+            <div class="advantages-grid">
+                <div class="advantage-card">
+                    <h3>Ночная доставка</h3>
+                    <p>Доставляем букеты до 20:00, чтобы вы могли удивить близких даже поздним вечером.</p>
+                </div>
+                
+                <div class="advantage-card">
+                    <h3>Эксклюзивные сорта</h3>
+                    <p>Работаем с редкими ночными цветами, которые раскрывают свою красоту при лунном свете.</p>
+                </div>
+                
+                <div class="advantage-card">
+                    <h3>Премиум качество</h3>
+                    <p>Каждый цветок проходит строгий отбор и хранится в специальных условиях.</p>
+                </div>
+                
+                <div class="advantage-card">
+                    <h3>24/7 поддержка</h3>
+                    <p>Наши консультанты готовы помочь в любое время суток для оперативного оформления заказа.</p>
+                </div>
+                
+                <div class="advantage-card">
+                    <h3>Индивидуальный дизайн</h3>
+                    <p>Создаем букеты по вашим эскизам и пожеланиям для особенных моментов.</p>
+                </div>
+                
+                <div class="advantage-card">
+                    <h3>Гарантия свежести</h3>
+                    <p>Гарантируем свежесть цветов не менее 7 дней или бесплатная замена.</p>
+                </div>
+            </div>
+            
+            <div class="advantages-stats">
+                <div class="stat-item">
+                    <div class="stat-number" data-count="1000">1000+</div>
+                    <div class="stat-label">довольных клиентов</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number" data-count="150">700+</div>
+                    <div class="stat-label">эксклюзивных букетов</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number" data-count="24">500+</div>
+                    <div class="stat-label">часов работы</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number" data-count="7">3+</div>
+                    <div class="stat-label">дней свежести</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="section-title">
+                <h2>Заказать букет</h2>
+                <p>Мы работаем с 8:00 до 20:00</p>
+            </div>
+
+            <div id="api-messages"></div>
+            
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3>Доставка</h3>
+                    <p>Наши курьеры доставят букет точно в указанное время, не нарушая атмосферу вечера.</p>
+                    
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <div>
+                                <h4>Время работы</h4>
+                                <p>8:00 - 20:00</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div>
+                                <h4>Телефон</h4>
+                                <p>+7 (000) 000-00-00</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div>
+                                <p>ул. Какая-то, 1, Краснодар</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form">
+                    <form id="orderForm" action="../b_lab_6/api.php" method="POST" data-api-url="../b_lab_6/api.php">
+                        <div class="form-group">
+                            <label for="name">Ваше имя *</label>
+                            <input type="text" id="name" name="name" class="form-control" placeholder="Как к вам обращаться?" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Телефон *</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" placeholder="+7 (___) ___-__-__" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bouquet">Выберите букет</label>
+                            <select id="bouquet" name="bouquet" class="form-control">
+                                <option value="black-moon">Полуночный сад (4 290 ₽)</option>
+                                <option value="blue-evening">Сияние ночи (5 490 ₽)</option>
+                                <option value="moonlight">Лунные розы (6 850 ₽)</option>
+                                <option value="custom">Индивидуальный ночной букет</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Особые пожелания</label>
+                            <textarea id="message" name="message" class="form-control" placeholder="Опишите атмосферу, которую хотите создать..."></textarea>
+                        </div>
+                        
+                        <button type="submit" name="submit" class="btn" style="width: 100%;">Заказать ночную доставку</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <a href="#" class="footer-logo"><i class="fas fa-moon"></i> LunaFlora</a>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Навигация</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Главная</a></li>
+                        <li><a href="#catalog">Коллекция</a></li>
+                        <li><a href="#contact">Заказ</a></li>
+                        <li><a href="#contact">Консультация</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3 id="contacts">Контакты</h3>
+                    <ul class="footer-links">
+                        <li>+7 (000) 000-00-00</li>
+                        <li>surname@gmail.com</li>
+                        <li>ул. Неизвестная 1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
