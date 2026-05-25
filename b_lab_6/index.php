@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 require_once "config.php";
 
@@ -6,6 +7,23 @@ $errorMessages = [];
 $oldValues = [];
 $successMessage = "";
 $isLoggedIn = isset($_SESSION["order_id"]);
+
+// Fallback: если сессия не работает, логинимся по кукам
+if (!$isLoggedIn && isset($_COOKIE["order_uid"]) && isset($_COOKIE["order_upass"])) {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare("SELECT id, password_hash FROM orders WHERE id = ?");
+        $stmt->execute([(int) $_COOKIE["order_uid"]]);
+        $user = $stmt->fetch();
+        if ($user && password_verify($_COOKIE["order_upass"], $user["password_hash"])) {
+            $_SESSION["order_id"] = $user["id"];
+            $_SESSION["order_password"] = $_COOKIE["order_upass"];
+            $isLoggedIn = true;
+        }
+    } catch (PDOException $e) {
+    }
+}
+
 $editData = null;
 
 $validBouquets = ["black-moon", "blue-evening", "moonlight", "custom"];
@@ -48,6 +66,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 session_regenerate_id(true);
                 $_SESSION["order_id"] = $user["id"];
                 $_SESSION["order_password"] = $loginPass;
+                setcookie("order_uid", $user["id"], time() + 3600, "/");
+                setcookie("order_upass", $loginPass, time() + 3600, "/");
                 setcookie(
                     "success_message",
                     "Вы успешно вошли в систему",
@@ -284,6 +304,8 @@ if (!$isLoggedIn && isset($_GET["login"]) && isset($_GET["password"])) {
             session_regenerate_id(true);
             $_SESSION["order_id"] = $user["id"];
             $_SESSION["order_password"] = $passParam;
+            setcookie("order_uid", $user["id"], time() + 3600, "/");
+            setcookie("order_upass", $passParam, time() + 3600, "/");
             header("Location: index.php");
             exit();
         } else {
@@ -291,6 +313,22 @@ if (!$isLoggedIn && isset($_GET["login"]) && isset($_GET["password"])) {
         }
     } catch (PDOException $e) {
         $errorMessages["general"] = "Ошибка базы данных";
+    }
+}
+
+// Если сессия не сохранилась (редирект не работает), логинимся через куки
+if (!$isLoggedIn && isset($_COOKIE["order_uid"]) && isset($_COOKIE["order_upass"])) {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare("SELECT id, password_hash FROM orders WHERE id = ?");
+        $stmt->execute([(int) $_COOKIE["order_uid"]]);
+        $user = $stmt->fetch();
+        if ($user && password_verify($_COOKIE["order_upass"], $user["password_hash"])) {
+            $_SESSION["order_id"] = $user["id"];
+            $_SESSION["order_password"] = $_COOKIE["order_upass"];
+            $isLoggedIn = true;
+        }
+    } catch (PDOException $e) {
     }
 }
 
