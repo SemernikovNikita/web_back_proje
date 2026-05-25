@@ -86,6 +86,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if (isset($_POST["logout"])) {
         session_destroy();
+        setcookie("order_uid", "", time() - 3600, "/");
+        setcookie("order_upass", "", time() - 3600, "/");
         header("Location: index.php");
         exit();
     }
