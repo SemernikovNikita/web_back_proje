@@ -162,7 +162,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $orderId = $pdo->lastInsertId();
                 $_SESSION["order_id"] = $orderId;
                 $_SESSION["order_password"] = $password;
-                $_SESSION["order_login"] = $login;
+                setcookie("created_login", $login, 0, "/");
+                setcookie("created_password", $password, 0, "/");
                 $successMessage = "created";
             }
 
@@ -223,13 +224,16 @@ if (isset($_COOKIE["error_general"])) {
 
 if (isset($_COOKIE["success_message"])) {
     $msg = $_COOKIE["success_message"];
-    if ($msg === "created" && isset($_SESSION["order_login"])) {
-        $l = htmlspecialchars($_SESSION["order_login"], ENT_QUOTES);
-        $p = htmlspecialchars($_SESSION["order_password"] ?? "", ENT_QUOTES);
-        $ul = urlencode($_SESSION["order_login"]);
-        $up = urlencode($_SESSION["order_password"] ?? "");
+    if ($msg === "created" && isset($_COOKIE["created_login"])) {
+        $l = htmlspecialchars($_COOKIE["created_login"], ENT_QUOTES);
+        $p = htmlspecialchars($_COOKIE["created_password"] ?? "", ENT_QUOTES);
+        $ul = urlencode($l);
+        $up = urlencode($p);
         $successMessage = "Спасибо, заказ принят!<br>Ваш логин: <b>{$l}</b><br>Ваш пароль: <b>{$p}</b><br>Профиль: <a href='index.php?login={$ul}&password={$up}' style='color:#155724;'>Войти в профиль</a>";
-        unset($_SESSION["order_login"]);
+        setcookie("created_login", "", time() - 3600, "/");
+        setcookie("created_password", "", time() - 3600, "/");
+    } elseif ($msg === "created") {
+        $successMessage = "Спасибо, заказ принят! Сохраните логин и пароль для входа в профиль.";
     } else {
         $successMessage = htmlspecialchars($msg, ENT_QUOTES);
     }
