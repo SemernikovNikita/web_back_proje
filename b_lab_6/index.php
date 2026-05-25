@@ -168,6 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 );
                 $stmt->execute([$orderId]);
                 $successMessage = "Данные успешно обновлены";
+                setcookie("order_uid", $orderId, time() + 3600, "/");
             } else {
                 $stmt = $pdo->prepare(
                     "INSERT INTO orders (name, phone, message, login, password_hash) VALUES (?, ?, ?, ?, ?)",
@@ -184,6 +185,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION["order_password"] = $password;
                 setcookie("created_login", $login, 0, "/");
                 setcookie("created_password", $password, 0, "/");
+                setcookie("order_uid", $orderId, time() + 3600, "/");
+                setcookie("order_upass", $password, time() + 3600, "/");
                 $successMessage = "created";
             }
 

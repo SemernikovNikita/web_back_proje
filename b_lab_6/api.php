@@ -207,16 +207,12 @@ try {
             !$user ||
             !password_verify($auth["password"], $user["password_hash"])
         ) {
-            $resp = [
-                "success" => false,
-                "message" => "Неверный логин или пароль",
-            ];
-            if ($outputFormat === "json") {
-                outputJson($resp, 401);
-            } else {
-                outputXml($resp, 401);
-            }
+            // If auth fails, treat as unauthenticated (ignore cached Basic Auth from admin.php etc.)
+            $auth = null;
         }
+    }
+
+    if ($auth) {
 
         $orderId = $user["id"];
         $stmt = $pdo->prepare(
