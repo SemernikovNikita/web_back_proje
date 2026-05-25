@@ -1,256 +1,308 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-header('Cache-Control: no-cache, must-revalidate');
-header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
-session_start();
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+    http_response_code(200);
+    exit();
+}
 
-require_once __DIR__ . '/functions.php';
+require_once "config.php";
 
-function arrayToXml($data, &$xml) {
-    foreach ($data as $key => $value) {
-        if (is_array($value)) {
-            $sub = $xml->addChild(is_numeric($key) ? 'item' : str_replace(' ', '_', $key));
-            arrayToXml($value, $sub);
-        } else {
-            $xml->addChild(str_replace(' ', '_', $key), htmlspecialchars((string)$value));
-        }
+$validBouquets = ["black-moon", "blue-evening", "moonlight", "custom"];
+$inputFormat = "json";
+$outputFormat = "json";
+
+if (isset($_GET["format"])) {
+    $fmt = strtolower($_GET["format"]);
+    if ($fmt === "xml") {
+        $outputFormat = "xml";
+    }
+} else {
+    $accept = $_SERVER["HTTP_ACCEPT"] ?? "";
+    if (strpos($accept, "application/xml") !== false || strpos($accept, "text/xml") !== false) {
+        $outputFormat = "xml";
     }
 }
 
-function sendJsonResponse($data, $http_code = 200) {
-    http_response_code($http_code);
-    header('Content-Type: application/json; charset=UTF-8');
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
+function parseInput(): array
+{
+    global $inputFormat;
+    $contentType = $_SERVER["CONTENT_TYPE"] ?? "";
+
+    if (strpos($contentType, "application/json") !== false) {
+        $inputFormat = "json";
+        $raw = file_get_contents("php://input");
+        $data = json_decode($raw, true);
+        return is_array($data) ? $data : [];
+    }
+
+    if (
+        strpos($contentType, "application/xml") !== false ||
+        strpos($contentType, "text/xml") !== false
+    ) {
+        $inputFormat = "xml";
+        $raw = file_get_contents("php://input");
+        $xml = simplexml_load_string($raw);
+        if ($xml === false) {
+            return [];
+        }
+        $json = json_encode($xml);
+        $data = json_decode($json, true);
+        return is_array($data) ? $data : [];
+    }
+
+    return $_POST ?: [];
 }
 
-function sendXmlResponse($data, $http_code = 200) {
-    http_response_code($http_code);
-    header('Content-Type: application/xml; charset=UTF-8');
-    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><response></response>');
+function outputJson(array $data, int $code = 200): void
+{
+    http_response_code($code);
+    header("Content-Type: application/json; charset=utf-8");
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+function outputXml(array $data, int $code = 200): void
+{
+    http_response_code($code);
+    header("Content-Type: application/xml; charset=utf-8");
+
+    $xml = new SimpleXMLElement(
+        '<?xml version="1.0" encoding="UTF-8"?><response></response>',
+    );
     arrayToXml($data, $xml);
     echo $xml->asXML();
-    exit;
+    exit();
 }
 
-function sendError($message, $http_code = 400, $format = 'json') {
-    if ($format === 'form') {
-        $_SESSION['errors'] = ['general' => $message];
-        header('Location: ../b_lab_6/form.php');
-        exit;
+function arrayToXml(array $data, SimpleXMLElement $xml): void
+{
+    foreach ($data as $key => $value) {
+        if (is_array($value)) {
+            $child = $xml->addChild(is_numeric($key) ? "item" : $key);
+            arrayToXml($value, $child);
+        } else {
+            $xml->addChild(
+                is_numeric($key) ? "item" : $key,
+                htmlspecialchars((string) $value),
+            );
+        }
     }
-    $data = ['success' => false, 'errors' => ['general' => $message]];
-    if ($format === 'xml') {
-        sendXmlResponse($data, $http_code);
+}
+
+function getAuthUser(): ?array
+{
+    if (
+        !isset($_SERVER["HTTP_AUTHORIZATION"]) &&
+        !isset($_SERVER["REDIRECT_HTTP_AUTHORIZATION"])
+    ) {
+        if (function_exists("apache_request_headers")) {
+            $headers = apache_request_headers();
+            if (isset($headers["Authorization"])) {
+                $_SERVER["HTTP_AUTHORIZATION"] = $headers["Authorization"];
+            }
+        }
+    }
+
+    $authHeader =
+        $_SERVER["HTTP_AUTHORIZATION"] ??
+        ($_SERVER["REDIRECT_HTTP_AUTHORIZATION"] ?? "");
+    if (preg_match("/Basic\s+(.+)/i", $authHeader, $m)) {
+        $decoded = base64_decode($m[1]);
+        if ($decoded && strpos($decoded, ":") !== false) {
+            [$login, $password] = explode(":", $decoded, 2);
+            return ["login" => $login, "password" => $password];
+        }
+    }
+    return null;
+}
+
+function validateInput(array $data): array
+{
+    global $validBouquets;
+    $errors = [];
+
+    $data["name"] = trim($data["name"] ?? "");
+    if (empty($data["name"])) {
+        $errors["name"] = "Поле обязательно для заполнения";
+    } elseif (!preg_match('/^[а-яА-ЯёЁa-zA-Z\s\.\-]+$/u', $data["name"])) {
+        $errors["name"] = "Допустимы только буквы, пробелы, дефисы и точки";
+    }
+
+    $data["phone"] = trim($data["phone"] ?? "");
+    if (empty($data["phone"])) {
+        $errors["phone"] = "Поле обязательно для заполнения";
+    } elseif (!preg_match('/^\+?\d[\d\s\-\(\)]{6,20}$/', $data["phone"])) {
+        $errors["phone"] =
+            "Допустимы только цифры, знак +, пробелы, дефисы и скобки";
+    }
+
+    $bouquets = $data["bouquets"] ?? [];
+    if (!is_array($bouquets)) {
+        $bouquets = [$bouquets];
+    }
+    $selectedBouquets = [];
+    foreach ($bouquets as $b) {
+        if (in_array((string) $b, $validBouquets)) {
+            $selectedBouquets[] = (string) $b;
+        }
+    }
+    if (empty($selectedBouquets)) {
+        $errors["bouquets"] = "Выберите хотя бы один букет";
+    }
+    $data["bouquets"] = $selectedBouquets;
+
+    $data["message"] = trim($data["message"] ?? "");
+    if (
+        $data["message"] !== "" &&
+        !preg_match(
+            '/^[а-яА-ЯёЁa-zA-Z0-9\s\.\,\!\?\-\:\;\"\'\@\#\$\%\&\(\)\+\=\/\_\~]+$/u',
+            $data["message"],
+        )
+    ) {
+        $errors["message"] =
+            "Допустимы только буквы, цифры, пробелы и знаки препинания";
+    }
+
+    return ["data" => $data, "errors" => $errors];
+}
+
+try {
+    $auth = getAuthUser();
+    $input = parseInput();
+
+    if (empty($input)) {
+        outputJson(
+            ["success" => false, "message" => "Нет данных для обработки"],
+            400,
+        );
+    }
+
+    $validation = validateInput($input);
+    $data = $validation["data"];
+    $errors = $validation["errors"];
+
+    if (!empty($errors)) {
+        $resp = ["success" => false, "errors" => $errors];
+        if ($outputFormat === "json") {
+            outputJson($resp, 422);
+        } else {
+            outputXml($resp, 422);
+        }
+    }
+
+    $pdo = getDB();
+
+    if ($auth) {
+        $stmt = $pdo->prepare(
+            "SELECT id, password_hash FROM orders WHERE login = ?",
+        );
+        $stmt->execute([$auth["login"]]);
+        $user = $stmt->fetch();
+
+        if (
+            !$user ||
+            !password_verify($auth["password"], $user["password_hash"])
+        ) {
+            $resp = [
+                "success" => false,
+                "message" => "Неверный логин или пароль",
+            ];
+            if ($outputFormat === "json") {
+                outputJson($resp, 401);
+            } else {
+                outputXml($resp, 401);
+            }
+        }
+
+        $orderId = $user["id"];
+        $stmt = $pdo->prepare(
+            "UPDATE orders SET name = ?, phone = ?, message = ? WHERE id = ?",
+        );
+        $stmt->execute([
+            $data["name"],
+            $data["phone"],
+            $data["message"],
+            $orderId,
+        ]);
+
+        $stmt = $pdo->prepare("DELETE FROM order_bouquets WHERE order_id = ?");
+        $stmt->execute([$orderId]);
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO order_bouquets (order_id, bouquet_id) VALUES (?, (SELECT id FROM bouquets WHERE code = ?))",
+        );
+        foreach ($data["bouquets"] as $bouquetCode) {
+            $stmt->execute([$orderId, $bouquetCode]);
+        }
+
+        $resp = ["success" => true, "message" => "Данные успешно обновлены"];
     } else {
-        sendJsonResponse($data, $http_code);
-    }
-}
+        $login = substr(bin2hex(random_bytes(4)), 0, 8);
+        $password = substr(bin2hex(random_bytes(6)), 0, 12);
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-function redirectForm($data, $errors = null, $credentials = null, $success = false) {
-    if ($credentials !== null) {
-        $_SESSION['credentials'] = $credentials;
-    }
-    if ($success) {
-        $_SESSION['success'] = true;
-        setcookie('save', '1', time() + 24 * 60 * 60, '/');
-    }
-    header('Location: ../b_lab_6/form.php');
-    exit;
-}
-
-function mapFrontendFields($raw) {
-    $mapped = [];
-    $mapped['full_name'] = trim($raw['name'] ?? '');
-    $mapped['phone'] = trim($raw['phone'] ?? '');
-
-    $bouquet = trim($raw['bouquet'] ?? '');
-    $message = trim($raw['message'] ?? '');
-    $bio = '';
-    if (!empty($bouquet)) {
-        $bio .= 'Выбранный букет: ' . $bouquet;
-    }
-    if (!empty($message)) {
-        if (!empty($bio)) $bio .= "\n";
-        $bio .= 'Пожелания: ' . $message;
-    }
-    $mapped['biography'] = $bio;
-
-    return $mapped;
-}
-
-function apiSaveNewApplication($data) {
-    $pdo = getDbConnection();
-    $login = bin2hex(random_bytes(8));
-    $password = bin2hex(random_bytes(8));
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-    try {
-        $sql_app = "INSERT INTO application (full_name, phone, biography, login, password_hash)
-                    VALUES (:full_name, :phone, :biography, :login, :password_hash)";
-        $stmt_app = $pdo->prepare($sql_app);
-        $stmt_app->execute([
-            ':full_name' => $data['full_name'],
-            ':phone' => $data['phone'],
-            ':biography' => $data['biography'],
-            ':login' => $login,
-            ':password_hash' => $password_hash
+        $stmt = $pdo->prepare(
+            "INSERT INTO orders (name, phone, message, login, password_hash) VALUES (?, ?, ?, ?, ?)",
+        );
+        $stmt->execute([
+            $data["name"],
+            $data["phone"],
+            $data["message"],
+            $login,
+            $passwordHash,
         ]);
+        $orderId = $pdo->lastInsertId();
 
-        return ['login' => $login, 'password' => $password];
-    } catch (PDOException $e) {
-        if (isset($pdo)) $pdo->rollBack();
-        return false;
-    }
-}
+        $stmt = $pdo->prepare(
+            "INSERT INTO order_bouquets (order_id, bouquet_id) VALUES (?, (SELECT id FROM bouquets WHERE code = ?))",
+        );
+        foreach ($data["bouquets"] as $bouquetCode) {
+            $stmt->execute([$orderId, $bouquetCode]);
+        }
 
-function apiUpdateApplication($app_id, $data) {
-    $pdo = getDbConnection();
+        $profileUrl =
+            (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] === "on"
+                ? "https"
+                : "http") .
+            "://" .
+            $_SERVER["HTTP_HOST"] .
+            rtrim(dirname($_SERVER["SCRIPT_NAME"]), "/") .
+            "/index.php?login=" .
+            urlencode($login) .
+            "&password=" .
+            urlencode($password);
 
-    try {
-        $sql_app = "UPDATE application SET full_name = :full_name, phone = :phone, biography = :biography WHERE id = :id";
-        $stmt_app = $pdo->prepare($sql_app);
-        $stmt_app->execute([
-            ':full_name' => $data['full_name'],
-            ':phone' => $data['phone'],
-            ':biography' => $data['biography'],
-            ':id' => $app_id
-        ]);
-
-        return true;
-    } catch (PDOException $e) {
-        if (isset($pdo)) $pdo->rollBack();
-        return false;
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendError('Only POST method is allowed', 405, 'json');
-}
-
-$content_type = $_SERVER['CONTENT_TYPE'] ?? '';
-
-if (strpos($content_type, 'application/json') !== false) {
-    $format = 'json';
-    $input = file_get_contents('php://input');
-    $raw = json_decode($input, true);
-    if ($raw === null) {
-        sendError('Invalid JSON input', 400, 'json');
-    }
-} elseif (strpos($content_type, 'application/xml') !== false || strpos($content_type, 'text/xml') !== false) {
-    $format = 'xml';
-    $input = file_get_contents('php://input');
-    libxml_use_internal_errors(true);
-    $xml = simplexml_load_string($input);
-    if ($xml === false) {
-        sendError('Invalid XML input', 400, 'xml');
-    }
-    $raw = json_decode(json_encode($xml), true);
-} else {
-    $format = 'form';
-    $raw = $_POST;
-}
-
-if (empty($raw) || !is_array($raw)) {
-    sendError('No data received', 400, $format);
-}
-
-    if (isset($raw['full_name']) || isset($raw['email'])) {
-        $data = [
-            'full_name' => trim($raw['full_name'] ?? ''),
-            'phone' => trim($raw['phone'] ?? ''),
-            'biography' => trim($raw['biography'] ?? '')
+        $resp = [
+            "success" => true,
+            "login" => $login,
+            "password" => $password,
+            "profile_url" => $profileUrl,
         ];
-} else {
-    $data = mapFrontendFields($raw);
-}
-
-$errors = validateFormData($data);
-if (!empty($errors)) {
-    if ($format === 'form') {
-        redirectForm($data, $errors);
     }
-    if ($format === 'xml') {
-        sendXmlResponse(['success' => false, 'errors' => ['error' => implode('; ', $errors)]], 400);
+
+    if ($outputFormat === "json") {
+        outputJson($resp);
     } else {
-        sendJsonResponse(['success' => false, 'errors' => $errors], 400);
+        outputXml($resp);
     }
-}
-
-$auth_login = $_SERVER['PHP_AUTH_USER'] ?? '';
-$auth_password = $_SERVER['PHP_AUTH_PW'] ?? '';
-
-if (!empty($auth_login) && !empty($auth_password)) {
-    $pdo = getDbConnection();
-    $stmt = $pdo->prepare("SELECT id, password_hash FROM application WHERE login = :login");
-    $stmt->execute([':login' => $auth_login]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user || !password_verify($auth_password, $user['password_hash'])) {
-        if ($format === 'form') {
-            $_SESSION['errors'] = ['auth' => 'Неверный логин или пароль.'];
-            redirectForm($data, $_SESSION['errors']);
-        }
-        if ($format === 'xml') {
-            sendXmlResponse(['success' => false, 'errors' => ['error' => 'Invalid login or password']], 401);
-        } else {
-            sendJsonResponse(['success' => false, 'errors' => ['auth' => 'Invalid login or password']], 401);
-        }
-    }
-
-    if (apiUpdateApplication($user['id'], $data)) {
-        if ($format === 'form') {
-            redirectForm($data, null, null, true);
-        }
-        if ($format === 'xml') {
-            sendXmlResponse(['success' => true, 'message' => 'Data updated successfully'], 200);
-        } else {
-            sendJsonResponse(['success' => true, 'message' => 'Data updated successfully'], 200);
-        }
+} catch (PDOException $e) {
+    $resp = [
+        "success" => false,
+        "message" => "Ошибка базы данных",
+    ];
+    if ($outputFormat === "json") {
+        outputJson($resp, 500);
     } else {
-        if ($format === 'form') {
-            $_SESSION['errors'] = ['general' => 'Update failed'];
-            redirectForm($data, $_SESSION['errors']);
-        }
-        if ($format === 'xml') {
-            sendXmlResponse(['success' => false, 'errors' => ['error' => 'Update failed']], 500);
-        } else {
-            sendJsonResponse(['success' => false, 'errors' => ['general' => 'Update failed']], 500);
-        }
+        outputXml($resp, 500);
     }
-}
-
-$result = apiSaveNewApplication($data);
-if ($result === false) {
-    if ($format === 'form') {
-        $_SESSION['errors'] = ['general' => 'Save failed'];
-        redirectForm($data, $_SESSION['errors']);
-    }
-    if ($format === 'xml') {
-        sendXmlResponse(['success' => false, 'errors' => ['error' => 'Save failed']], 500);
+} catch (Exception $e) {
+    $resp = ["success" => false, "message" => "Внутренняя ошибка сервера"];
+    if ($outputFormat === "json") {
+        outputJson($resp, 500);
     } else {
-        sendJsonResponse(['success' => false, 'errors' => ['general' => 'Save failed']], 500);
+        outputXml($resp, 500);
     }
-}
-
-if ($format === 'form') {
-    redirectForm($data, null, $result, true);
-}
-
-$profile_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']) . '/form.php';
-
-if ($format === 'xml') {
-    sendXmlResponse([
-        'success' => true,
-        'login' => $result['login'],
-        'password' => $result['password'],
-        'profile_url' => $profile_url
-    ], 201);
-} else {
-    sendJsonResponse([
-        'success' => true,
-        'login' => $result['login'],
-        'password' => $result['password'],
-        'profile_url' => $profile_url
-    ], 201);
 }
